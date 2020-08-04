@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.commonCode.mapper">
+	
+	<select id="selectCommonCodeList" resultType="hashMap">
+		
+		SELECT * FROM MASTER_TABLE
+		
+	</select>
+	
+	<select id="selectOneCommCodeList" resultType="hashMap" parameterType="hashMap">
+	
+		SELECT M.CODE, D.DCODE_NAME, D.USER_YN, D.DCODE
+		FROM MASTER_TABLE M,DETAIL_TABLE D
+		WHERE M.CODE = D.CODE 
+		AND M.CODE = #{code}
+		AND M.USER_YN = #{mUseYn}
+		AND D.USER_YN = #{dUseYn}
+	</select>
+	
+	<select id="commCodeDetail" resultType="hashMap" parameterType="string">
+		SELECT M.CODE 
+		, D.DCODE
+     	, D.DCODE_NAME
+     	, D.USER_YN
+  		FROM MASTER_TABLE M , DETAIL_TABLE D
+ 		WHERE M.CODE = D.CODE
+  		 AND M.CODE =#{code}
+  		 ORDER BY D.DCODE
+	</select>
+	
+	<insert id="commCodeInsert" parameterType="hashMap">
+		INSERT INTO DETAIL_TABLE(CODE,DCODE,DCODE_NAME,USER_YN)
+		VALUES (#{mCode}, #{dCode}, #{codeName},#{userYn})
+	</insert>
+	
+	<select id="checkCode" resultType="int" parameterType="list">
+		SELECT COUNT(*) FROM DETAIL_TABLE WHERE DCODE IN 
+		<foreach collection="array" item="dCode" index="index" open="(" separator="," close=")">
+	       #{dCode}
+	    </foreach>
+	</select>
+	
+	<update id="commCodeUpdae" parameterType="hashMap">
+		update detail_table set 
+ 		dcode_name = #{listDcode_Name}
+		,user_yn = #{radioYnN}
+		where dcode = #{listDcode}
+	</update>
+	
+	<delete id="commCodeDelete" parameterType="hashMap">
+		delete from detail_table
+		where dcode=#{delCode}
+	</delete>
+</mapper>

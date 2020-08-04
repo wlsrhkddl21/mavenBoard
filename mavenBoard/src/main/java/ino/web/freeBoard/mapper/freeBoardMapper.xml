@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.freeBoard.mapper">
+	
+	<select id="freeBoardGetList" resultType="hashMap" parameterType="hashMap"> <!-- resultType="ino.web.board.dto.BoardDto" -->
+		SELECT A.*
+		FROM
+		(
+		SELECT ROW_NUMBER() OVER (ORDER BY NUM DESC) AS rnum
+		     , NUM
+		     , TITLE
+		     , NAME
+		     , TO_CHAR(REGDATE,'YYYY/MM/DD') REGDATE
+		     , CONTENT
+		FROM FREEBOARD 
+		WHERE 1=1
+		<if test="searchType=='DCOM001'">
+			AND title like '%' ||#{searchTxt}|| '%'
+		</if>
+		<if test="searchType=='DCOM002'">
+ 			AND NUM = #{searchTxt}	
+ 		</if> 
+		<if test="beginDate!='' and endDate!=''">
+			AND TO_CHAR(REGDATE,'YYYYMMDD') BETWEEN #{beginDate} AND #{endDate} 
+		</if>
+		) A
+		WHERE a.rnum BETWEEN #{pageBegin} AND #{pageEnd}
+		ORDER BY LPAD( NUM, 5 ) DESC
+	</select>
+	
+	
+	<insert id="freeBoardInsertPro" parameterType="hashMap">
+		INSERT INTO FREEBOARD(NUM, TITLE, NAME, REGDATE, CONTENT)
+		VALUES( FREEBOARDNUM_SEQ.NEXTVAL, #{title}, #{name}, SYSDATE, #{content})
+	</insert>
+	
+	<select id="freeBoardDetailByNum" resultType="hashMap" parameterType="int">
+		SELECT NUM, TITLE, NAME, TO_CHAR(REGDATE,'YYYY/MM/DD') REGDATE, CONTENT FROM FREEBOARD
+		WHERE NUM=#{num}
+	</select>
+	
+	<select id="freeBoardNewNum" resultType="int">
+		SELECT MAX(NUM)
+		FROM FREEBOARD
+	</select>
+	
+	<update id="freeBoardModify" parameterType="hashMap">
+		UPDATE FREEBOARD
+		SET TITLE = #{title}
+				, CONTENT = #{content}
+		WHERE NUM = #{num}
+		
+	</update>
+	
+	<update id="freeBoardDelete" parameterType="int">
+		DELETE FROM FREEBOARD
+		WHERE NUM
+		= #{num}
+	</update>
+	
+	<select id="freeBoardCount" resultType="int" parameterType="hashMap">
+	SELECT COUNT(*) FROM FREEBOARD 
+	 WHERE 1 = 1
+	<if test="searchType=='DCOM001'">
+	   AND title like '%' ||#{searchTxt}|| '%'
+	</if>
+	<if test="searchType=='DCOM002'">
+	   AND NUM = #{searchTxt}	
+	</if> 
+	<if test="beginDate!='' and endDate!=''">
+		AND TO_CHAR(REGDATE,'YYYYMMDD') BETWEEN #{beginDate} AND #{endDate} 
+	</if>
+	</select>
+	
+	
+</mapper>

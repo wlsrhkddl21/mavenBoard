@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.freeBoard.mapper">
+	
+	<select id="freeBoardGetList" resultType="hashMap" parameterType="hashMap"> <!-- resultType="ino.web.board.dto.BoardDto" -->
+		SELECT A.*
+		FROM
+		(
+		SELECT ROW_NUMBER() OVER (ORDER BY NUM DESC) AS rnum
+		     , NUM
+		     , TITLE
+		     , NAME
+		     , TO_CHAR(REGDATE,'YYYY/MM/DD') REGDATE
+		     , CONTENT
+		FROM FREEBOARD 
+		WHERE 1=1
+		<if test="searchType=='DCOM001'">
+			AND title like '%' ||#{searchTxt}|| '%'
+		</if>
+		<if test="searchType=='DCOM002'">
+ 			AND NUM = #{searchTxt}	
+ 		</if> 
+		<if test="beginDate!='' and endDate!=''">
+			AND TO_CHAR(REGDATE,'YYYYMMDD') BETWEEN #{beginDate} AND #{endDate} 
+		</if>
+		) A
+		WHERE a.rnum BETWEEN #{pageBegin} AND #{pageEnd}
+		ORDER BY LPAD( NUM, 5 ) DESC
+	</select>
+	
+	
+	<select id="freeBoardInsertPro" parameterType="hashMap" statementType="CALLABLE">
+	
+		 {
+            CALL free(
+            	#{num, mode=IN, javaType=integer, jdbcType=INTEGER}
+               ,#{name, mode=IN, javaType=string, jdbcType=VARCHAR}
+               ,#{title, mode=IN, javaType=string, jdbcType=VARCHAR}
+               ,#{content, mode=IN, javaType=string, jdbcType=VARCHAR}
+               ,#{reg_user, mode=IN, javaType=string, jdbcType=VARCHAR}
+            )
+        }
+	</select>
+	
+	<select id="freeBoardDetailByNum" resultType="hashMap" parameterType="int">
+		SELECT NUM, TITLE, NAME, TO_CHAR(REGDATE,'YYYY/MM/DD') REGDATE, CONTENT FROM FREEBOARD
+		WHERE NUM=#{num}
+	</select>
+	
+	<select id="freeBoardNewNum" resultType="int">
+		SELECT MAX(NUM)
+		FROM FREEBOARD
+	</select>
+	
+	<update id="freeBoardModify" parameterType="hashMap">
+		UPDATE FREEBOARD
+		SET TITLE = #{title}
+				, CONTENT = #{content}
+		WHERE NUM = #{num}
+		
+	</update>
+	
+	<update id="freeBoardDelete" parameterType="java.util.HashMap">
+		DELETE FROM FREEBOARD
+		WHERE NUM = #{num}
+	</update>
+	
+	<select id="freeBoardCount" resultType="int" parameterType="java.util.HashMap">
+	SELECT COUNT(*) FROM FREEBOARD 
+	 WHERE 1 = 1
+	<if test="searchType=='DCOM001'">
+	   AND title like '%' ||#{searchTxt}|| '%'
+	</if>
+	<if test="searchType=='DCOM002'">
+	   AND NUM = #{searchTxt}	
+	</if> 
+	<if test="beginDate!='' and endDate!=''">
+		AND TO_CHAR(REGDATE,'YYYYMMDD') BETWEEN #{beginDate} AND #{endDate} 
+	</if>
+	</select>
+	<select id="addBar" resultType="hashMap" parameterType="hashMap">
+	SELECT * FROM
+		(SELECT LEVEL LV,OBJNAME,GROUPNAME,GROUPID,OBJID,DEPT
+		FROM (SELECT M.*, O.HIGI_OBJ
+	      	 FROM OBJECTTABLE O, MAPPINGTABLE M
+	     	 WHERE O.OBJID = M.OBJID
+	     	 AND M.GROUPID= #{groupId})
+		START WITH OBJNAME = #{objName}
+		CONNECT BY PRIOR  OBJID = HIGI_OBJ)
+	WHERE LV=2
+	</select>
+	
+	<select id="getHistoryMaxNum" resultType="int">
+		SELECT MAX(NUM) FROM FREEBOARDHISTORY
+	</select>
+	
+	<update id="historyUserUpdate" parameterType="hashMap">
+		UPDATE FREEBOARDHISTORY SET
+		REG_USER = #{userId}
+		WHERE NUM = #{num}
+	</update>
+	
+</mapper>

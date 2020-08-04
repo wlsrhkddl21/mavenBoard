@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.authority.mapper">
+
+	<select id="groupList" resultType="hashMap">
+		SELECT * FROM GROUPTABLE
+		ORDER BY groupid
+	</select>
+	
+	<select id="objectList" resultType="hashMap">
+		SELECT * FROM OBJECTTABLE
+		ORDER BY OBJID
+	</select>
+	
+	<select id="mappingList" resultType="hashMap" parameterType="hashMap">
+		SELECT * FROM MAPPINGTABLE
+		WHERE GROUPID = #{groupId}
+	</select>
+	
+	<delete id="mappingDelete" parameterType="hashMap">
+		Delete from mappingtable
+		where groupid= #{groupId}
+		and objid=#{objId}
+	</delete>
+
+<!-- 	<delete id="mappingDelete" parameterType="list"> -->
+<!-- 		DELETE FROM MAPPINGTABLE -->
+<!-- 			<where> -->
+<!-- 			    <foreach collection="list" item="item" open="" close="" separator="OR"> -->
+<!-- 			        (GROUPID = #{item.groupId} AND OBJID = #{item.objId}) -->
+<!-- 			    </foreach> -->
+<!-- 		    </where> -->
+<!-- 	</delete> -->
+	
+	<select id="groupAndObject" resultType="hashMap" parameterType="hashMap">
+		SELECT G.GROUPID,G.GROUPNAME,O.OBJID,O.OBJNAME, O.DEPT, O.HIGI_OBJ
+		FROM GROUPTABLE G, OBJECTTABLE O
+		WHERE G.GROUPID=#{groupId}
+		AND O.OBJID = #{objId}
+	</select>
+	
+<!-- 	<insert id="mappingInsert" parameterType="list"> -->
+<!-- 		<foreach collection="list" item="item" open="INSERT ALL" close="SELECT * FROM SYS.DUAL"  -->
+<!--         separator=" "> -->
+<!--         INTO MAPPINGTABLE -->
+<!--    		VALUES ( -->
+<!--           #{item.GROUPID} -->
+<!--         , #{item.GROUPNAME} -->
+<!--         , #{item.OBJID} -->
+<!--         , #{item.OBJNAME} -->
+<!--         , #{item.DEPT} -->
+<!--     	) -->
+<!--    		</foreach> -->
+<!-- 	</insert> -->
+	<insert id="mappingInsert" parameterType="hashMap">
+		INSERT INTO MAPPINGTABLE
+		VALUES (#{GROUPID},#{GROUPNAME},#{OBJID},#{OBJNAME},#{DEPT})
+	</insert>
+	
+	<select id="checkInMapping" resultType="int" parameterType="hashMap">
+		SELECT COUNT(*) FROM MAPPINGTABLE
+		WHERE GROUPID = #{groupId}
+		AND OBJID=#{objId}
+	</select>
+	
+	<select id="checkDeMapping" resultType="int" parameterType="hashMap">
+		SELECT COUNT(*)
+		FROM OBJECTTABLE O,MAPPINGTABLE M
+		WHERE o.objid = m.objid 
+        and O.HIGI_OBJ = #{objId}
+        AND M.GROUPID=#{groupId}
+	</select>
+	
+	<select id="checkLogin" resultType="hashMap" parameterType="hashMap">
+		SELECT * 
+		FROM USERTABLE
+		WHERE USERID = #{userId}
+		AND PASSWORD = #{userPw}
+	</select>
+</mapper>
